@@ -3,31 +3,53 @@
 namespace WeatherKata;
 
 use DateTime;
-use WeatherKata\Http\Client;
+use WeatherKata\Services\ForecastService;
 
 class Forecast
 {
     public function __construct(
-        private readonly Client $client = new Client(),
+        private readonly ForecastService $forecastService = new ForecastService(),
     ) {
     }
 
-    public function predict(
-        string &$city,
-        bool $wind = false,
-        DateTime $datetime = new DateTime(),
+    public function changeCityToWOEId(string $city): int
+    {
+        return $this->forecastService->getWOEId($city);
+    }
+
+    public function predictWindSpeed(
+        string $city,
+        DateTime $dateTime = new DateTime(),
+    ): float {
+        $prediction = $this->getPredictionByCity($city, $dateTime);
+        if ($prediction instanceof Prediction) {
+            return $prediction->windSpeed();
+        }
+        return '';
+    }
+
+    public function predictWeatherState(
+        string $city,
+        DateTime $dateTime = new DateTime(),
     ): string {
+        $prediction = $this->getPredictionByCity($city, $dateTime);
+        if ($prediction instanceof Prediction) {
+            return $prediction->weatherStateName();
+        }
+        return '';
+    }
+
+    private function getPredictionByCity(
+        string $city, 
+        DateTime $dateTime = new DateTime(),
+    ): Prediction|string {
         $thisWeek = new DateTime("+6 days 00:00:00");
-        if ($datetime > $thisWeek) {
-            return "";
+        if ($dateTime > $thisWeek) {
+            return '';
         }
 
-        // Find the id of the city on metawheather
-        $whereOnEarthId = $this->client->get("https://www.metaweather.com/api/location/search/?query=$city");
-        $city = $whereOnEarthId;
-
-        // Find the predictions for the city
-        $predictions = $this->client->get("https://www.metaweather.com/api/location/$city");
+        // Call the Forecast Service here
+        $predictions = $this->forecastService->getForecastByCityName($city);
 
         foreach ($predictions as $prediction) {
             $prediction = Prediction::create(
@@ -36,15 +58,11 @@ class Forecast
                 $prediction['weather_state_name'],
             );
             // When the date is the expected
-            $dateIsTheExpected = $prediction->applicableDate() == $datetime->format('Y-m-d');
-            if ($dateIsTheExpected && $wind) {
-                // If we have to return the wind information
-                return $prediction->windSpeed();
-            }
-            if ($dateIsTheExpected && !$wind) {
-                return $prediction->weatherStateName();
+            $dateIsTheExpected = $prediction->applicableDate() == $dateTime->format('Y-m-d');
+            if ($dateIsTheExpected) {
+                return $prediction;
             }
         }
-        return "";
+        return '';
     }
 }

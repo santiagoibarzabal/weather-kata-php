@@ -14,7 +14,7 @@ class WeatherTest extends TestCase
         $forecast = new Forecast();
         $city     = "Madrid";
 
-        $prediction = $forecast->predict($city);
+        $prediction = $forecast->predictWeatherState($city);
 
         $this->assertEquals('sunny', $prediction);
     }
@@ -25,7 +25,7 @@ class WeatherTest extends TestCase
         $forecast = new Forecast();
         $city     = "Madrid";
 
-        $prediction = $forecast->predict($city, false, new DateTime('+2 days'));
+        $prediction = $forecast->predictWeatherState($city, new DateTime('+2 days'));
 
         $this->assertEquals('sunny', $prediction);
     }
@@ -36,7 +36,7 @@ class WeatherTest extends TestCase
         $forecast = new Forecast();
         $city = "Madrid";
 
-        $prediction = $forecast->predict($city, true);
+        $prediction = $forecast->predictWindSpeed($city);
 
         $this->assertEquals(60.0, $prediction);
     }
@@ -47,7 +47,7 @@ class WeatherTest extends TestCase
         $forecast = new Forecast();
         $city = "Madrid";
 
-        $forecast->predict($city, true);
+        $city = $forecast->changeCityToWOEId($city);
 
         $this->assertEquals("766273", $city);
     }
@@ -58,7 +58,7 @@ class WeatherTest extends TestCase
         $forecast = new Forecast();
         $city = "Madrid";
 
-        $prediction = $forecast->predict($city, false, new DateTime('+6 days'));
+        $prediction = $forecast->predictWeatherState($city, new DateTime('+6 days'));
 
         $this->assertEquals("", $prediction);
     }
