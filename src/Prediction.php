@@ -6,11 +6,23 @@ use WeatherKata\Http\Client;
 
 class Prediction
 {
-    public function __construct(
-        private string $applicableDate,
-        private float $windSpeed,
-        private string $weatherStateName,
+    private function __construct(
+        private readonly string $applicableDate,
+        private readonly float $windSpeed,
+        private readonly string $weatherStateName,
     ){
+    }
+
+    public static function create(
+        string $applicableDate,
+        float $windSpeed,
+        string $weatherStateName,
+    ): self {
+        return new self(
+            $applicableDate,
+            $windSpeed,
+            $weatherStateName,
+        );
     }
 
     public function applicableDate(): string
@@ -23,9 +35,9 @@ class Prediction
         return $this->windSpeed;
     }
 
-    public function weatherStateName(): float
+    public function weatherStateName(): string
     {
         return $this->weatherStateName;
     }
-    
+
 }

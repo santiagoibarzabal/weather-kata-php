@@ -2,44 +2,49 @@
 
 namespace WeatherKata;
 
+use DateTime;
 use WeatherKata\Http\Client;
 
 class Forecast
 {
+    public function __construct(
+        private readonly Client $client = new Client(),
+    ) {
+    }
 
     public function predict(
-        string &$city, 
-        \DateTime $datetime = null,
+        string &$city,
         bool $wind = false,
-        ): string {
-        $thisWeek = new \DateTime("+6 days 00:00:00");
-        // Why this below? VVVV
-        if (!$datetime) {
-            $datetime = new \DateTime();
-        }
-        if (!($datetime < $thisWeek)) {
+        DateTime $datetime = new DateTime(),
+    ): string {
+        $thisWeek = new DateTime("+6 days 00:00:00");
+        if ($datetime > $thisWeek) {
             return "";
         }
-        // Create a Guzzle Http Client
-        $client = new Client();
 
         // Find the id of the city on metawheather
-        $cityId = $client->get("https://www.metaweather.com/api/location/search/?query=$city");
+        $whereOnEarthId = $this->client->get("https://www.metaweather.com/api/location/search/?query=$city");
+        $city = $whereOnEarthId;
 
         // Find the predictions for the city
-        $predictions = $client->get("https://www.metaweather.com/api/location/$cityId");
+        $predictions = $this->client->get("https://www.metaweather.com/api/location/$city");
 
         foreach ($predictions as $prediction) {
+            $prediction = Prediction::create(
+                $prediction['applicable_date'],
+                $prediction['wind_speed'],
+                $prediction['weather_state_name'],
+            );
             // When the date is the expected
-            $dateIsTheExpected = $prediction["applicable_date"] == $datetime->format('Y-m-d');
+            $dateIsTheExpected = $prediction->applicableDate() == $datetime->format('Y-m-d');
             if ($dateIsTheExpected && $wind) {
                 // If we have to return the wind information
-                return $prediction['wind_speed'];
+                return $prediction->windSpeed();
             }
             if ($dateIsTheExpected && !$wind) {
-                return $prediction['weather_state_name'];
+                return $prediction->weatherStateName();
             }
         }
-        
+        return "";
     }
 }

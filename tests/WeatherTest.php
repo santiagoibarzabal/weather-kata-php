@@ -2,6 +2,7 @@
 
 namespace Tests\WeatherKata;
 
+use DateTime;
 use WeatherKata\Forecast;
 use PHPUnit\Framework\TestCase;
 
@@ -24,9 +25,9 @@ class WeatherTest extends TestCase
         $forecast = new Forecast();
         $city     = "Madrid";
 
-        $prediction = $forecast->predict($city, new \DateTime('+2 days'));
+        $prediction = $forecast->predict($city, false, new DateTime('+2 days'));
 
-        $this->assertEquals('sunny', $prediction );
+        $this->assertEquals('sunny', $prediction);
     }
 
 /** @test */
@@ -35,7 +36,7 @@ class WeatherTest extends TestCase
         $forecast = new Forecast();
         $city = "Madrid";
 
-        $prediction = $forecast->predict($city, null, true);
+        $prediction = $forecast->predict($city, true);
 
         $this->assertEquals(60.0, $prediction);
     }
@@ -46,7 +47,7 @@ class WeatherTest extends TestCase
         $forecast = new Forecast();
         $city = "Madrid";
 
-        $forecast->predict($city, null, true);
+        $forecast->predict($city, true);
 
         $this->assertEquals("766273", $city);
     }
@@ -57,7 +58,7 @@ class WeatherTest extends TestCase
         $forecast = new Forecast();
         $city = "Madrid";
 
-        $prediction = $forecast->predict($city, new \DateTime('+6 days'));
+        $prediction = $forecast->predict($city, false, new DateTime('+6 days'));
 
         $this->assertEquals("", $prediction);
     }
